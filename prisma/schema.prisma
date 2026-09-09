@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum LoanStatus {
+  ACTIVE
+  RETURNED
+  LATE
+}
+
+model User {
+  id           String     @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(USER)
+  loans        Loan[]
+  favorites    Favorite[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Book {
+  id             String       @id @default(uuid())
+  title          String
+  isbn           String?      @unique
+  description    String?
+  publishedAt    DateTime?
+  coverUrl       String?
+  totalStock     Int
+  availableStock Int
+  categoryId     String
+  category       Category     @relation(fields: [categoryId], references: [id])
+  authors        BookAuthor[]
+  loans          Loan[]
+  favorites      Favorite[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([title])
+  @@index([categoryId])
+}
+
+model Author {
+  id        String       @id @default(uuid())
+  firstName String?
+  lastName  String
+  biography String?
+  books     BookAuthor[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([lastName])
+}
+
+model BookAuthor {
+  bookId   String
+  authorId String
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  author   Author @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@id([bookId, authorId])
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  books       Book[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Loan {
+  id         String     @id @default(uuid())
+  userId     String
+  bookId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book       Book       @relation(fields: [bookId], references: [id], onDelete: Restrict)
+  borrowedAt DateTime   @default(now())
+  dueAt      DateTime
+  returnedAt DateTime?
+  status     LoanStatus @default(ACTIVE)
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([status])
+}
+
+model Favorite {
+  userId    String
+  bookId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, bookId])
+}

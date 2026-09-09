@@ -1,0 +1,21 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+
+# Prisma / local database artifacts
+*.db
+*.db-journal
+
+# Local documents kept outside the source commit
+*.pdf
+
+# Logs and OS/editor files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
